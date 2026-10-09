@@ -57,7 +57,15 @@ public function panel(Panel $panel): Panel
 }
 ```
 
-The saved values are read once per request (one settings query; enable the [spatie/laravel-settings cache](https://github.com/spatie/laravel-settings#caching-settings) to skip it).
+The saved values are read once per request (one settings query; enable the [spatie/laravel-settings cache](https://github.com/spatie/laravel-settings#caching-settings) to skip it). The header is built on every request — including pages served by a full-page cache such as [laravel-page-cache](https://github.com/jeffersongoncalves/laravel-page-cache) — so a saved change applies right away; flushing the page cache does not change it.
+
+### Tightening the policy safely
+
+1. Turn on **report-only**, change the directive (e.g. swap `'unsafe-inline'` for `'nonce-{nonce}'` in `script-src`) and save.
+2. Browse the site and watch the browser console: report-only logs every violation without blocking anything.
+3. Fix what violates (inline scripts without the nonce, Alpine expressions that need `'unsafe-eval'` — see [Nonces](https://github.com/jeffersongoncalves/laravel-security-headers#nonces-for-inline-scripts) and [Alpine.js / Livewire without 'unsafe-eval'](https://github.com/jeffersongoncalves/laravel-security-headers#alpinejs--livewire-without-unsafe-eval)), then turn report-only off.
+
+If something breaks after enforcing, put the old value back (or **Reset to config**) — no deploy needed. Proxies may also add scripts of their own (e.g. Cloudflare's Google tag gateway injects inline GTM without the nonce); check the page as a real browser receives it.
 
 ## Requirements
 
