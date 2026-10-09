@@ -146,6 +146,11 @@ class ManageSecurityHeaders extends SettingsPage
     {
         return function (string $attribute, mixed $value, Closure $fail) use ($pattern, $kind): void {
             foreach ((array) $value as $name => $content) {
+                // Filament 4+ keeps the KeyValue state as rows (uuid => [key, value]) until it is dehydrated.
+                if (is_array($content)) {
+                    [$name, $content] = [$content['key'] ?? '', $content['value'] ?? ''];
+                }
+
                 if (preg_match($pattern, (string) $name) !== 1) {
                     $fail(__('filament-security-headers::security-headers.validation.'.$kind, ['name' => (string) $name]));
                 }
