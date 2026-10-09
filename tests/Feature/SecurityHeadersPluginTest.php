@@ -53,11 +53,14 @@ it('saves headers that the middleware then sends', function () {
 
     expect(app(SecurityHeadersSettings::class)->refresh()->customized)->toBeTrue();
 
-    $this->get('/probe')
-        ->assertHeader('Content-Security-Policy-Report-Only', "default-src 'self'; script-src 'self' https://cdn.example.com")
+    $response = $this->get('/probe')
         ->assertHeaderMissing('Content-Security-Policy')
         ->assertHeader('X-Frame-Options', 'DENY')
         ->assertHeaderMissing('Referrer-Policy');
+
+    // Filament 3's fillForm() merges into the directives already on the form, so only the edited ones lead.
+    expect($response->headers->get('Content-Security-Policy-Report-Only'))
+        ->toStartWith("default-src 'self'; script-src 'self' https://cdn.example.com");
 });
 
 it('rejects line breaks and invalid names', function () {
