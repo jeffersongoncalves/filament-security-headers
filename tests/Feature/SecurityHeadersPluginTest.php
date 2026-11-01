@@ -4,6 +4,7 @@ use Filament\Facades\Filament;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Route;
 use JeffersonGoncalves\Filament\SecurityHeaders\Pages\ManageSecurityHeaders;
+use JeffersonGoncalves\Filament\SecurityHeaders\SecurityHeadersOverrides;
 use JeffersonGoncalves\Filament\SecurityHeaders\SecurityHeadersPlugin;
 use JeffersonGoncalves\Filament\SecurityHeaders\Settings\SecurityHeadersSettings;
 use JeffersonGoncalves\SecurityHeaders\Middleware\SecurityHeaders;
@@ -73,6 +74,15 @@ it('rejects line breaks and invalid names', function () {
         ->assertHasFormErrors(['headers', 'csp_directives']);
 
     expect(app(SecurityHeadersSettings::class)->refresh()->customized)->toBeFalse();
+});
+
+it('keeps the config when the settings cannot be loaded', function () {
+    $headers = config('security-headers.headers');
+    app()->bind(SecurityHeadersSettings::class, fn () => throw new RuntimeException('Connection refused'));
+
+    SecurityHeadersOverrides::apply();
+
+    expect(config('security-headers.headers'))->toBe($headers);
 });
 
 it('goes back to the config', function () {
