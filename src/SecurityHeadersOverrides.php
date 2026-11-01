@@ -5,6 +5,7 @@ namespace JeffersonGoncalves\Filament\SecurityHeaders;
 use Illuminate\Database\QueryException;
 use JeffersonGoncalves\Filament\SecurityHeaders\Settings\SecurityHeadersSettings;
 use Spatie\LaravelSettings\Exceptions\MissingSettings;
+use Throwable;
 
 /**
  * Bridges the saved settings and config/security-headers.php, which the laravel-security-headers middleware reads.
@@ -80,6 +81,10 @@ final class SecurityHeadersOverrides
             $customized = $settings->customized;
         } catch (QueryException|MissingSettings) {
             return; // settings not migrated yet: keep the config
+        } catch (Throwable $e) {
+            report($e);
+
+            return; // settings unreachable (e.g. cache store down): keep the config, never block boot
         }
 
         if (! $customized) {
